@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% from "admin/_fields.html" import field_input %}
+{% block title %}Profile{% endblock %}
+{% block actions %}<a class="btn" href="{{ url_for('admin.preview') }}">👁 Preview</a>{% endblock %}
+{% block content %}
+<p class="muted">Tick <strong>Show</strong> next to a field to display it on the public website. Unticked fields stay private. Custom profile fields can be added under <a href="{{ url_for('admin.fields', target='profile') }}">Custom fields</a>.</p>
+<form method="post" enctype="multipart/form-data" class="stack">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  {% for g in groups + ['Your custom fields'] %}
+    {% set gfields = defs|selectattr('custom', 'defined')|selectattr('custom')|list if g == 'Your custom fields' else defs|rejectattr('custom', 'defined')|selectattr('group', 'equalto', g)|list %}
+    {% if gfields %}
+    <section class="card">
+      <h2>{{ g }}</h2>
+      {% for f in gfields %}
+        {% set v = values.get(f.key, ('', not f.default_hidden)) %}
+        <div class="field prof {{ 'wide' if f.type in ('richtext','textarea','links') else '' }}">
+          <div class="prof-head">
+            <label>{{ f.label }}{% if f.custom %} <span class="pill">custom</span>{% endif %}</label>
+            <label class="check show"><input type="checkbox" name="vis_{{ f.key }}" value="1" {{ 'checked' if v[1] }}> Show on website</label>
+          </div>
+          {{ field_input(f, v[0]) }}
+          {% if f.help %}<small class="muted">{{ f.help }}</small>{% endif %}
+        </div>
+      {% endfor %}
+    </section>
+    {% endif %}
+  {% endfor %}
+  <div class="sticky-bar">
+    <button class="btn" type="submit" name="action" value="draft">Save draft</button>
+    <button class="btn primary" type="submit" name="action" value="publish">Save &amp; publish</button>
+  </div>
+</form>
+{% endblock %}

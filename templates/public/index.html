@@ -1,0 +1,42 @@
+{% extends "public/base.html" %}
+{% from "public/_card.html" import card %}
+{% block body %}
+<section class="hero"><div class="wrap hero-grid">
+  {% if hero.picture %}<img class="avatar" src="{{ hero.picture }}" alt="{{ hero.name }}">{% endif %}
+  <div>
+    {% if hero.name %}<h1>{{ hero.name }}</h1>{% endif %}
+    {% if hero.headline %}<p class="headline">{{ hero.headline }}</p>{% endif %}
+    {% if hero.intro %}<p class="intro">{{ hero.intro }}</p>{% endif %}
+    {% if hero.location %}<p class="muted">📍 {{ hero.location }}</p>{% endif %}
+    <p class="cta">
+      {% if resume_url %}<a class="btn primary" href="{{ resume_url }}?dl=1">Download résumé</a>{% endif %}
+      {% if hero.email %}<a class="btn" href="mailto:{{ hero.email }}">Get in touch</a>{% endif %}
+      {% if hero.github %}<a class="btn ghost" href="{{ hero.github }}" target="_blank" rel="noopener noreferrer">GitHub</a>{% endif %}
+      {% if hero.linkedin %}<a class="btn ghost" href="{{ hero.linkedin }}" target="_blank" rel="noopener noreferrer">LinkedIn</a>{% endif %}
+    </p>
+  </div>
+</div></section>
+
+{% for s in sections %}
+<section class="section" id="{{ s.key }}"><div class="wrap">
+  <h2>{{ s.title }}</h2>
+  {% if s.intro %}<p class="lead">{{ s.intro }}</p>{% endif %}
+  {% if s.kind in ('about', 'contact') %}
+    <dl class="facts {{ s.kind }}">
+      {% for label, html, typ, key in s.rows %}
+        <div class="fact {{ 'wide' if typ in ('richtext', 'textarea') else '' }}"><dt>{{ label }}</dt><dd>{{ html }}</dd></div>
+      {% endfor %}
+    </dl>
+  {% else %}
+    {% for heading, cards in s.groups %}
+      {% if heading %}<h3 class="group">{{ heading }}</h3>{% endif %}
+      <div class="items {{ s.layout }}">{% for c in cards %}{{ card(c, s.layout) }}{% endfor %}</div>
+    {% endfor %}
+  {% endif %}
+</div></section>
+{% endfor %}
+
+{% if not sections and not hero.name %}
+<section class="section"><div class="wrap"><p>Nothing is published yet. Open <a href="/admin/">/admin</a> to add your content.</p></div></section>
+{% endif %}
+{% endblock %}

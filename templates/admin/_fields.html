@@ -1,0 +1,113 @@
+{# Form controls for every field type. Usage: {{ field_input(f, value) }} #}
+{% macro rep_remove() %}<button type="button" class="btn small ghost rep-del" title="Remove" aria-label="Remove row">✕</button>{% endmacro %}
+
+{% macro field_input(f, value) %}
+{% set name = 'f_' ~ f.key %}
+{% set t = f.type %}
+{% if t in ('text', 'email', 'url', 'videourl') %}
+  <input type="{{ 'email' if t == 'email' else 'text' }}" name="{{ name }}" value="{{ value or '' }}"
+         placeholder="{{ f.placeholder or ('https://…' if t in ('url','videourl') else '') }}"
+         {% if t in ('url','videourl') %}inputmode="url"{% endif %}
+         {% if f.maxlength %}maxlength="{{ f.maxlength }}"{% endif %} {% if f.required %}required{% endif %}>
+{% elif t == 'phone' %}
+  <input type="tel" name="{{ name }}" value="{{ value or '' }}" placeholder="{{ f.placeholder or '+91 98765 43210' }}">
+{% elif t == 'date' %}
+  <input type="date" name="{{ name }}" value="{{ value or '' }}">
+{% elif t == 'number' %}
+  <input type="number" name="{{ name }}" value="{{ value if value is not none else '' }}" step="{{ f.step or 'any' }}"
+         {% if f.min %}min="{{ f.min }}"{% endif %} {% if f.max %}max="{{ f.max }}"{% endif %}
+         placeholder="{{ f.placeholder or '' }}">
+{% elif t == 'textarea' %}
+  <textarea name="{{ name }}" rows="3">{{ value or '' }}</textarea>
+{% elif t == 'richtext' %}
+  <textarea name="{{ name }}" class="rt" rows="6">{{ value or '' }}</textarea>
+{% elif t == 'checkbox' %}
+  <label class="check"><input type="checkbox" name="{{ name }}" value="1" {{ 'checked' if value }}> Yes</label>
+{% elif t in ('select', 'ref') %}
+  <select name="{{ name }}">
+    <option value="">— none —</option>
+    {% for v, label in option_pairs(f.options) %}
+      <option value="{{ v }}" {{ 'selected' if value == v }}>{{ label }}</option>
+    {% endfor %}
+  </select>
+{% elif t == 'combo' %}
+  <input type="text" name="{{ name }}" value="{{ value or '' }}" list="dl_{{ f.key }}" placeholder="{{ f.placeholder or 'Pick or type your own' }}" autocomplete="off">
+  <datalist id="dl_{{ f.key }}">{% for v, label in option_pairs(f.options) %}<option value="{{ v }}">{% endfor %}</datalist>
+{% elif t == 'multiselect' %}
+  <div class="checks">
+    {% for v, label in option_pairs(f.options) %}
+      <label class="check"><input type="checkbox" name="{{ name }}" value="{{ v }}" {{ 'checked' if value and v in value }}> {{ label }}</label>
+    {% endfor %}
+  </div>
+{% elif t == 'tags' %}
+  <input type="text" name="{{ name }}" value="{{ (value or [])|join(', ') }}" placeholder="comma, separated, values">
+{% elif t == 'list' %}
+  <div class="rep" data-label="Add another">
+    {% for v in (value or []) + [''] %}
+      <div class="rep-row"><input type="text" name="{{ name }}[]" value="{{ v }}">{{ rep_remove() }}</div>
+    {% endfor %}
+  </div>
+{% elif t == 'urllist' %}
+  <div class="rep" data-label="Add another link">
+    {% for v in (value or []) + [''] %}
+      <div class="rep-row"><input type="text" name="{{ name }}[]" value="{{ v }}" placeholder="https://…" inputmode="url">{{ rep_remove() }}</div>
+    {% endfor %}
+  </div>
+{% elif t == 'links' %}
+  <div class="rep" data-label="Add another link">
+    {% for v in (value or []) + [{'label': '', 'url': ''}] %}
+      <div class="rep-row two">
+        <input type="text" name="{{ name }}__label[]" value="{{ v.label }}" placeholder="Label (e.g. Twitter)">
+        <input type="text" name="{{ name }}__url[]" value="{{ v.url }}" placeholder="https://…" inputmode="url">{{ rep_remove() }}
+      </div>
+    {% endfor %}
+  </div>
+{% elif t == 'kv' %}
+  <div class="rep" data-label="Add another row">
+    {% for v in (value or []) + [{'k': '', 'v': ''}] %}
+      <div class="rep-row two">
+        <input type="text" name="{{ name }}__k[]" value="{{ v.k }}" placeholder="Name (e.g. Accuracy)">
+        <input type="text" name="{{ name }}__v[]" value="{{ v.v }}" placeholder="Value (e.g. 94%)">{{ rep_remove() }}
+      </div>
+    {% endfor %}
+  </div>
+{% elif t in ('image', 'file') %}
+  <div class="upload">
+    {% if value and value.f %}
+      <div class="current">
+        {% if t == 'image' %}<img src="/media/{{ value.f }}" alt="" class="thumb">{% endif %}
+        <a href="/media/{{ value.f }}" target="_blank">{{ value.n or value.f }}</a>
+        <label class="check"><input type="checkbox" name="rm_{{ f.key }}" value="{{ value.f }}"> remove</label>
+      </div>
+    {% endif %}
+    <input type="file" name="up_{{ f.key }}" accept="{{ '.pdf' if f.exts == 'pdf' else ('image/png,image/jpeg,image/gif,image/webp' if t == 'image' else '') }}">
+    <small class="muted">{{ 'Choosing a new file replaces the current one.' if value and value.f else '' }}</small>
+  </div>
+{% elif t in ('images', 'files') %}
+  <div class="upload">
+    {% if value %}
+      <div class="current-list">
+        {% for v in value %}
+          <div class="current">
+            {% if t == 'images' %}<img src="/media/{{ v.f }}" alt="" class="thumb">{% endif %}
+            <a href="/media/{{ v.f }}" target="_blank">{{ v.n or v.f }}</a>
+            <label class="check"><input type="checkbox" name="rm_{{ f.key }}" value="{{ v.f }}"> remove</label>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    <input type="file" name="up_{{ f.key }}" multiple accept="{{ 'image/png,image/jpeg,image/gif,image/webp' if t == 'images' else '' }}">
+    <small class="muted">You can select several files at once.</small>
+  </div>
+{% else %}
+  <input type="text" name="{{ name }}" value="{{ value or '' }}">
+{% endif %}
+{% endmacro %}
+
+{% macro field_row(f, value) %}
+  <div class="field {{ 'wide' if f.type in ('richtext','textarea','list','links','kv','urllist','images','files','multiselect') else '' }}">
+    <label>{{ f.label }}{% if f.required %} <span class="req">*</span>{% endif %}{% if f.custom %} <span class="pill">custom</span>{% endif %}</label>
+    {{ field_input(f, value) }}
+    {% if f.help %}<small class="muted">{{ f.help }}</small>{% endif %}
+  </div>
+{% endmacro %}

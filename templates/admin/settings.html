@@ -1,0 +1,27 @@
+{% extends "admin/base.html" %}
+{% block title %}Settings{% endblock %}
+{% block content %}
+<section class="card">
+  <h2>Website</h2>
+  <form method="post" class="grid-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="form" value="site">
+    <div class="field"><label>Site title (browser tab)</label><input name="site_title" value="{{ settings.get('site_title','') }}" maxlength="120"></div>
+    <div class="field"><label>Tagline (optional)</label><input name="tagline" value="{{ settings.get('tagline','') }}" maxlength="200"></div>
+    <div class="field"><label>Accent colour</label><input type="color" name="accent" value="{{ settings.get('accent','#4f46e5') }}"></div>
+    <div class="field wide"><label>Footer text (optional)</label><input name="footer" value="{{ settings.get('footer','') }}" maxlength="300" placeholder="© Your Name"></div>
+    <div><button class="btn primary" type="submit">Save</button></div>
+  </form>
+</section>
+<section class="card">
+  <h2>Change password</h2>
+  <form method="post" class="grid-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="form" value="password">
+    <div class="field"><label>Current password</label><input type="password" name="current" autocomplete="current-password" required></div>
+    <div class="field"><label>New password</label><input type="password" name="new" autocomplete="new-password" minlength="8" required></div>
+    <div class="field"><label>Repeat new password</label><input type="password" name="new2" autocomplete="new-password" minlength="8" required></div>
+    <div><button class="btn" type="submit">Change password</button></div>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "public/base.html" %}
+{% block title %}{{ title }} · {{ settings.get('site_title') or hero.name }}{% endblock %}
+{% block body %}
+<section class="section detail"><div class="wrap narrow">
+  <p><a href="{{ prefix or '/' }}#{{ sec.key }}">← {{ sec.title }}</a></p>
+  <h1>{{ title }}</h1>
+  {% if card.subtitle %}<p class="headline">{{ card.subtitle }}</p>{% endif %}
+  {% if card.range %}<p class="range">{{ card.range }}</p>{% endif %}
+  {% if card.badge %}<span class="badge">{{ card.badge }}</span>{% endif %}
+  {% if card.draft %}<span class="badge draft">Draft</span>{% endif %}
+  {% if card.links %}<p class="links">{% for l, u in card.links %}<a class="btn small" href="{{ u }}" target="_blank" rel="noopener noreferrer">{{ l }} ↗</a> {% endfor %}</p>{% endif %}
+  {% for label, html, typ in rows %}
+    <div class="drow {{ typ }}">
+      <h3>{{ label }}</h3>
+      {{ html }}
+    </div>
+  {% endfor %}
+</div></section>
+{% endblock %}

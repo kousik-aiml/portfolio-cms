@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}
+{% block title %}Please confirm{% endblock %}
+{% block content %}
+<div class="card narrow warn">
+  <h2>{{ heading }}</h2>
+  <p>{{ message }}</p>
+  <form method="post" class="row">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="confirm" value="yes">
+    <button class="btn danger" type="submit">{{ button }}</button>
+    <a class="btn ghost" href="{{ cancel }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+{% from "admin/_fields.html" import field_row %}
+{% block title %}{{ 'Edit' if item else 'Add' }} {{ sec.singular }}{% endblock %}
+{% block actions %}<a class="btn ghost" href="{{ url_for('admin.section_list', key=sec.key) }}">← Back to {{ sec.title }}</a>{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="editor">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card fields">
+    {% for f in sec.fields %}
+      {% if loop.first %}{% endif %}
+      {{ field_row(f, data.get(f.key)) }}
+    {% endfor %}
+    {% if sec.key != 'skill_categories' %}
+      <p class="muted">Need another field? <a href="{{ url_for('admin.fields', target=sec.key) }}">Create a custom field</a> — it will show up here.</p>
+    {% endif %}
+  </div>
+  <aside class="card publishbox">
+    <h3>Publish</h3>
+    <p class="muted">
+      {% if not item %}New — not saved yet.
+      {% elif item.status == 'published' %}Published{% if item.dirty %} · <strong>has unpublished edits</strong>{% endif %}
+      {% else %}Draft — not visible to visitors.{% endif %}
+    </p>
+    <label class="check"><input type="checkbox" name="visible" value="1" {{ 'checked' if (not item) or item.visible }}> Visible to visitors</label>
+    <small class="muted">Untick to hide it without deleting.</small>
+    <div class="stack-btns">
+      <button class="btn primary" type="submit" name="action" value="publish">{{ 'Publish' if not item or item.status != 'published' else 'Save &amp; publish'|safe }}</button>
+      <button class="btn" type="submit" name="action" value="draft">Save draft</button>
+      {% if sec.key not in ('skills', 'resumes', 'skill_categories') %}
+        <button class="btn ghost" type="submit" name="action" value="preview">Save draft &amp; preview</button>
+      {% endif %}
+    </div>
+    {% if item %}
+      <hr>
+      <a class="btn danger small" href="{{ url_for('admin.item_delete', item_id=item.id) }}">Delete permanently…</a>
+    {% endif %}
+  </aside>
+</form>
+{% endblock %}

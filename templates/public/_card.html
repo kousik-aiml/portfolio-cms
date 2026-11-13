@@ -1,0 +1,23 @@
+{% macro card(c, layout) %}
+<article class="item {{ layout }}{{ ' is-draft' if c.draft }}">
+  {% if c.image %}<img class="item-img" src="{{ c.image }}" alt="" loading="lazy">{% endif %}
+  <div class="item-body">
+    {% if c.range %}<div class="range">{{ c.range }}</div>{% endif %}
+    <h3>{% if c.detail_url %}<a href="{{ c.detail_url }}">{{ c.title }}</a>{% else %}{{ c.title }}{% endif %}
+      {% if c.badge %}<span class="badge">{{ c.badge }}</span>{% endif %}
+      {% if c.draft %}<span class="badge draft">Draft</span>{% endif %}</h3>
+    {% if c.subtitle %}<div class="sub">{{ c.subtitle }}</div>{% endif %}
+    {% if c.meta %}<div class="meta">{{ c.meta|join(' · ') }}</div>{% endif %}
+    {% if c.progress is not none %}<div class="progress" role="progressbar" aria-valuenow="{{ c.progress }}" aria-valuemin="0" aria-valuemax="100"><span style="width:{{ c.progress }}%"></span></div>{% endif %}
+    {% if c.summary %}<p>{{ c.summary }}</p>{% endif %}
+    {% if c.extras %}<dl class="extras">{% for l, v in c.extras %}<div><dt>{{ l }}</dt><dd>{{ v }}</dd></div>{% endfor %}</dl>{% endif %}
+    {% if c.tags %}<ul class="tags">{% for t in c.tags %}<li>{{ t }}</li>{% endfor %}</ul>{% endif %}
+    {% if c.links or c.detail_url %}
+    <div class="links">
+      {% for l, u in c.links %}<a href="{{ u }}" target="_blank" rel="noopener noreferrer">{{ l }} ↗</a>{% endfor %}
+      {% if c.detail_url %}<a href="{{ c.detail_url }}">Details →</a>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</article>
+{% endmacro %}

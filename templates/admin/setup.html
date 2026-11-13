@@ -1,0 +1,14 @@
+{% extends "admin/auth.html" %}
+{% block title %}First-time setup{% endblock %}
+{% block form %}
+<h1>Welcome 👋 Create your admin password</h1>
+<p class="muted">This is the only account. Nothing is pre-set — you choose the password now. Do this before exposing the site to the internet.</p>
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="field"><label for="pw">Password (min. 8 characters)</label>
+    <input id="pw" type="password" name="password" autocomplete="new-password" minlength="8" required autofocus></div>
+  <div class="field"><label for="pw2">Repeat password</label>
+    <input id="pw2" type="password" name="password2" autocomplete="new-password" minlength="8" required></div>
+  <button class="btn primary" type="submit">Create password &amp; continue</button>
+</form>
+{% endblock %}

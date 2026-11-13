@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>{% block title %}Dashboard{% endblock %} · Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body class="admin">
+{% if is_admin %}
+<div class="shell">
+  <aside class="side" id="side">
+    <div class="brand"><a href="{{ url_for('admin.dashboard') }}">⚙️ Admin</a></div>
+    <nav>
+      <a href="{{ url_for('admin.dashboard') }}" class="{{ 'on' if request.endpoint == 'admin.dashboard' }}">Dashboard</a>
+      <a href="{{ url_for('admin.profile') }}" class="{{ 'on' if request.endpoint == 'admin.profile' }}">👤 Profile</a>
+      <div class="group">Content</div>
+      {% for s in nav_sections %}
+        <a href="{{ url_for('admin.section_list', key=s.key) }}" class="{{ 'on' if request.view_args and request.view_args.get('key') == s.key }}">
+          {{ s.title }}{% if not s.visible %} <span class="pill">hidden</span>{% endif %}</a>
+      {% endfor %}
+      <a href="{{ url_for('admin.section_list', key='skill_categories') }}" class="sub {{ 'on' if request.view_args and request.view_args.get('key') == 'skill_categories' }}">↳ Skill categories</a>
+      <div class="group">Website</div>
+      <a href="{{ url_for('admin.sections') }}" class="{{ 'on' if request.endpoint == 'admin.sections' }}">Sections &amp; order</a>
+      <a href="{{ url_for('admin.fields') }}" class="{{ 'on' if request.endpoint == 'admin.fields' }}">Custom fields</a>
+      <a href="{{ url_for('admin.preview') }}">👁 Preview changes</a>
+      <a href="{{ url_for('public.index') }}" target="_blank">↗ View live site</a>
+      <div class="group">System</div>
+      <a href="{{ url_for('admin.data_page') }}" class="{{ 'on' if request.endpoint == 'admin.data_page' }}">Import / export / backup</a>
+      <a href="{{ url_for('admin.settings_page') }}" class="{{ 'on' if request.endpoint == 'admin.settings_page' }}">Settings</a>
+    </nav>
+    <form method="post" action="{{ url_for('admin.logout') }}" class="logout">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn ghost small" type="submit">Log out</button>
+    </form>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <button class="btn ghost small menu" type="button" onclick="document.getElementById('side').classList.toggle('open')">☰ Menu</button>
+      <h1>{% block heading %}{{ self.title() }}{% endblock %}</h1>
+      <div class="top-actions">{% block actions %}{% endblock %}</div>
+    </header>
+    <main class="content">
+      {% with msgs = get_flashed_messages(with_categories=true) %}
+        {% for cat, m in msgs %}<div class="flash {{ cat }}" role="status">{{ m }}</div>{% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% else %}
+  <main class="center">
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% for cat, m in msgs %}<div class="flash {{ cat }}" role="status">{{ m }}</div>{% endfor %}
+    {% endwith %}
+    {% block bare %}{% endblock %}
+  </main>
+{% endif %}
+<script src="{{ url_for('static', filename='js/admin.js') }}" defer></script>
+</body>
+</html>

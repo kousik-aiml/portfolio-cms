@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block title %}Import / export / backup{% endblock %}
+{% block content %}
+<div class="grid2">
+<section class="card">
+  <h2>Export</h2>
+  <p><a class="btn" href="{{ url_for('admin.export_personal') }}">⬇ Personal information (JSON)</a></p>
+  <p class="muted">Everything you manage — profile, all records (drafts included), sections, custom fields. Can be re-imported.</p>
+  <p><a class="btn" href="{{ url_for('admin.export_website') }}">⬇ Website content (JSON)</a></p>
+  <p class="muted">Only what visitors currently see (published &amp; visible).</p>
+</section>
+<section class="card">
+  <h2>Full backup</h2>
+  <p><a class="btn primary" href="{{ url_for('admin.backup') }}">⬇ Download database backup (.zip)</a></p>
+  <p class="muted">A consistent copy of the database <em>plus all uploaded files</em> (images, PDFs, résumés).</p>
+</section>
+<section class="card">
+  <h2>Import personal information</h2>
+  <form method="post" action="{{ url_for('admin.data_import') }}" enctype="multipart/form-data" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label>JSON file exported from this app</label><input type="file" name="file" accept=".json,application/json" required></div>
+    <label class="check"><input type="radio" name="mode" value="merge" checked> <strong>Merge</strong> — add new and update matching records, keep everything else</label>
+    <label class="check"><input type="radio" name="mode" value="replace"> <strong>Replace</strong> — delete current records first, then import</label>
+    <label class="check"><input type="checkbox" name="confirm" value="yes"> I understand “Replace” permanently deletes current records</label>
+    <button class="btn primary" type="submit">Import</button>
+  </form>
+  <p class="muted">Uploaded files are not inside the JSON; use the full backup to move files.</p>
+</section>
+<section class="card warn">
+  <h2>Restore backup</h2>
+  <form method="post" action="{{ url_for('admin.data_restore') }}" enctype="multipart/form-data" class="stack">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label>Backup .zip</label><input type="file" name="file" accept=".zip" required></div>
+    <label class="check"><input type="checkbox" name="confirm" value="yes"> Replace <strong>everything</strong> (content, files, password) with this backup</label>
+    <button class="btn danger" type="submit">Restore</button>
+  </form>
+  <p class="muted">The previous database is kept as <code>data/portfolio.db.before-restore</code>.</p>
+</section>
+</div>
+<section class="card">
+  <h2>Delete information</h2>
+  <p>Open any record or section and use <strong>Delete</strong>; you will be asked to confirm and it is then permanent. Deleting a custom field removes its values too.</p>
+</section>
+{% endblock %}

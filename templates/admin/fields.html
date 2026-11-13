@@ -1,0 +1,53 @@
+{% extends "admin/base.html" %}
+{% block title %}Custom fields{% endblock %}
+{% block content %}
+<p class="muted">Create your own fields without touching code. A new field instantly appears in the editor of the place you attach it to (profile, education, experience, projects, any section, or your own sections) and, if you allow it, on the public site.</p>
+
+<section class="card">
+  <h2>Add a custom field</h2>
+  <form method="post" class="grid-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label>Field name</label><input name="label" required maxlength="120" placeholder="e.g. Favourite Programming Language"></div>
+    <div class="field"><label>Field type</label>
+      <select name="type" id="cf-type">{% for k, l in types %}<option value="{{ k }}">{{ l }}</option>{% endfor %}</select></div>
+    <div class="field"><label>Attach to</label>
+      <select name="target">{% for k, l in targets %}<option value="{{ k }}" {{ 'selected' if k == selected }}>{{ l }}</option>{% endfor %}</select></div>
+    <div class="field wide" id="cf-options" hidden><label>Options (one per line)</label><textarea name="options" rows="4" placeholder="Option A&#10;Option B"></textarea></div>
+    <div class="field wide"><label>Help text (optional)</label><input name="help" maxlength="300"></div>
+    <label class="check"><input type="checkbox" name="show_public" value="1" checked> Show on the public website</label>
+    <div><button class="btn primary" type="submit">Add field</button></div>
+  </form>
+  <p class="muted">Then open the profile or record and fill in the value (for example <em>Favourite Programming Language → Python</em>).</p>
+</section>
+
+{% for tk, tl in targets %}
+  {% set trs = rows|selectattr('target', 'equalto', tk)|list %}
+  {% if trs %}
+  <section class="card" id="t-{{ tk }}">
+    <h2>{{ tl }} <span class="pill">{{ trs|length }}</span></h2>
+    {% for r in trs %}
+    <details class="cf">
+      <summary><strong>{{ r.label }}</strong> <span class="pill">{{ types|selectattr(0, 'equalto', r.type)|map(attribute=1)|first }}</span>
+        {% if not r.show_public %}<span class="pill dark">private</span>{% endif %}</summary>
+      <form method="post" action="{{ url_for('admin.field_edit', fid=r.id) }}" class="grid-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="field"><label>Field name</label><input name="label" value="{{ r.label }}" maxlength="120"></div>
+        <div class="field"><label>Help text</label><input name="help" value="{{ r.help }}" maxlength="300"></div>
+        {% if r.type in ('select', 'multiselect') %}
+          <div class="field wide"><label>Options (one per line)</label><textarea name="options" rows="4">{{ r.options|join('\n') }}</textarea></div>
+        {% endif %}
+        <label class="check"><input type="checkbox" name="show_public" value="1" {{ 'checked' if r.show_public }}> Show on the public website</label>
+        <div class="row">
+          <button class="btn primary small" type="submit">Save</button>
+          <button class="btn small ghost" type="submit" formaction="{{ url_for('admin.field_move', fid=r.id, direction='up') }}">▲</button>
+          <button class="btn small ghost" type="submit" formaction="{{ url_for('admin.field_move', fid=r.id, direction='down') }}">▼</button>
+          <a class="btn small danger" href="{{ url_for('admin.field_delete', fid=r.id) }}">Delete…</a>
+        </div>
+      </form>
+    </details>
+    {% endfor %}
+  </section>
+  {% endif %}
+{% endfor %}
+{% if not rows %}<div class="card empty"><p>No custom fields yet.</p></div>{% endif %}
+{% endblock %}

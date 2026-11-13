@@ -1,0 +1,39 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block actions %}
+  <a class="btn" href="{{ url_for('admin.preview') }}">👁 Preview changes</a>
+  <a class="btn ghost" href="{{ url_for('public.index') }}" target="_blank">View live site ↗</a>
+{% endblock %}
+{% block content %}
+{% if total_drafts or total_dirty or profile_unpublished %}
+<div class="flash info">
+  Not yet live:
+  {% if profile_unpublished %}<a href="{{ url_for('admin.profile') }}">profile changes</a>{% endif %}
+  {% if total_drafts %}· {{ total_drafts }} draft record{{ '' if total_drafts == 1 else 's' }}{% endif %}
+  {% if total_dirty %}· {{ total_dirty }} published record{{ '' if total_dirty == 1 else 's' }} with unpublished edits{% endif %}.
+  <a href="{{ url_for('admin.preview') }}">Preview</a> then publish from each section.
+</div>
+{% endif %}
+<div class="grid">
+  <a class="tile" href="{{ url_for('admin.profile') }}"><strong>👤 Profile</strong><span>Name, bio, contact, links, interests…</span></a>
+  {% for s in stats %}
+  <a class="tile" href="{{ url_for('admin.section_list', key=s.key) }}">
+    <strong>{{ s.title }}</strong>
+    <span>{{ s.count }} record{{ '' if s.count == 1 else 's' }}
+      {% if s.drafts %}· {{ s.drafts }} draft{% endif %}
+      {% if s.dirty %}· {{ s.dirty }} edited{% endif %}
+      {% if s.hidden %}· {{ s.hidden }} hidden{% endif %}
+      {% if not s.visible %}· section hidden{% endif %}</span>
+  </a>
+  {% endfor %}
+</div>
+<div class="card">
+  <h2>How it works</h2>
+  <ul>
+    <li><strong>Draft → Publish:</strong> “Save draft” keeps your edit private. “Publish” makes it live. Visitors only ever see the last published version.</li>
+    <li><strong>Hide:</strong> hides a record (or a whole section under <a href="{{ url_for('admin.sections') }}">Sections &amp; order</a>) without deleting it.</li>
+    <li><strong>Your own fields &amp; sections:</strong> create them under <a href="{{ url_for('admin.fields') }}">Custom fields</a> and <a href="{{ url_for('admin.sections') }}">Sections &amp; order</a> — no code needed.</li>
+    <li><strong>Back up regularly:</strong> <a href="{{ url_for('admin.data_page') }}">Import / export / backup</a>.</li>
+  </ul>
+</div>
+{% endblock %}

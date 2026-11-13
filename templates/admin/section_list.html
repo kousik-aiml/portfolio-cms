@@ -1,0 +1,65 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ sec.title }}{% endblock %}
+{% block actions %}
+  {% if sec.key == 'skills' %}<a class="btn ghost" href="{{ url_for('admin.section_list', key='skill_categories') }}">Manage categories</a>{% endif %}
+  {% if sec.key != 'skill_categories' %}<a class="btn ghost" href="{{ url_for('admin.fields', target=sec.key) }}">Custom fields</a>{% endif %}
+  <a class="btn primary" href="{{ url_for('admin.item_edit', key=sec.key) }}">+ Add {{ sec.singular }}</a>
+{% endblock %}
+{% block content %}
+{% if not on_site and sec.key != 'skill_categories' %}
+  <div class="flash info">This whole section is currently hidden from visitors. <a href="{{ url_for('admin.sections') }}">Change in Sections &amp; order</a>.</div>
+{% endif %}
+{% if sec.key == 'skills' %}<p class="muted">Skills are grouped by category on the website. You can create unlimited categories.</p>{% endif %}
+{% if sec.key == 'resumes' %}<p class="muted">Upload several PDF versions and mark one as the <strong>default</strong> — that is the one behind the “Download résumé” button.</p>{% endif %}
+{% if not rows %}
+  <div class="card empty"><p>No {{ sec.singular }}s yet.</p><a class="btn primary" href="{{ url_for('admin.item_edit', key=sec.key) }}">+ Add your first {{ sec.singular }}</a></div>
+{% else %}
+<div class="listhead">
+  <span class="muted">Drag ⠿ to reorder, or use ▲ ▼. Order here is the order on the website.</span>
+  <form method="post" action="{{ url_for('admin.publish_all', key=sec.key) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn small" type="submit">Publish all</button>
+  </form>
+</div>
+<ul class="rows sortable" data-reorder="{{ url_for('admin.section_reorder', key=sec.key) }}" data-csrf="{{ csrf_token() }}">
+{% for r in rows %}
+  {% set i = r.item %}
+  <li class="rowitem {{ 'is-hidden' if not i.visible }}" data-id="{{ i.id }}" draggable="true">
+    <span class="grip" title="Drag to reorder">⠿</span>
+    <div class="grow">
+      <a class="title" href="{{ url_for('admin.item_edit', item_id=i.id) }}">{{ r.title }}</a>
+      {% if r.sub %}<div class="muted">{{ r.sub }}</div>{% endif %}
+      <div class="badges">
+        {% if i.status == 'published' %}<span class="pill ok">Published</span>{% else %}<span class="pill">Draft</span>{% endif %}
+        {% if i.dirty %}<span class="pill warn">Unpublished edits</span>{% endif %}
+        {% if not i.visible %}<span class="pill dark">Hidden</span>{% endif %}
+        {% if sec.key == 'resumes' and i.uid == default_resume %}<span class="pill ok">Default</span>{% endif %}
+      </div>
+    </div>
+    <div class="rowactions">
+      {% macro act(name, label, cls='') %}
+        <form method="post" action="{{ url_for('admin.item_action', item_id=i.id, action=name) }}" class="inline">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn small {{ cls }}" type="submit">{{ label|safe }}</button>
+        </form>
+      {% endmacro %}
+      {{ act('up', '▲', 'ghost') }}{{ act('down', '▼', 'ghost') }}
+      <a class="btn small" href="{{ url_for('admin.item_edit', item_id=i.id) }}">Edit</a>
+      {% if sec.key not in ('skills', 'resumes', 'skill_categories') %}<a class="btn small ghost" href="{{ url_for('admin.item_preview', item_id=i.id) }}">Preview</a>{% endif %}
+      {% if sec.key == 'resumes' %}
+        {% set rf = i.data.get('file') %}
+        {% if rf %}<a class="btn small ghost" href="/media/{{ rf.f }}" target="_blank">Preview PDF</a>
+        <a class="btn small ghost" href="/media/{{ rf.f }}?dl=1">Download</a>{% endif %}
+        {% if i.uid != default_resume %}{{ act('default', 'Set default') }}{% endif %}
+      {% endif %}
+      {% if i.status == 'published' %}{{ act('unpublish', 'Unpublish') }}{% else %}{{ act('publish', 'Publish', 'primary') }}{% endif %}
+      {% if i.dirty %}{{ act('publish', 'Publish edits', 'primary') }}{% endif %}
+      {% if i.visible %}{{ act('hide', 'Hide') }}{% else %}{{ act('show', 'Show') }}{% endif %}
+      {{ act('duplicate', 'Duplicate', 'ghost') }}
+      <a class="btn small danger" href="{{ url_for('admin.item_delete', item_id=i.id) }}">Delete</a>
+    </div>
+  </li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ settings.get('site_title') or hero.name or 'Portfolio' }}{% endblock %}</title>
+  <meta name="description" content="{{ hero.headline }}">
+  {% if preview %}<meta name="robots" content="noindex,nofollow">{% endif %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/site.css') }}">
+  <style>:root{--accent: {{ settings.get('accent') if settings.get('accent','')|length == 7 else '#4f46e5' }};}</style>
+</head>
+<body>
+{% if preview %}
+<div class="previewbar">
+  <strong>Preview</strong> — showing your drafts and unpublished edits. Visitors do not see this yet.
+  <a href="{{ url_for('admin.dashboard') }}">← Back to admin</a>
+</div>
+{% endif %}
+<header class="site-header">
+  <div class="wrap bar">
+    <a class="logo" href="{{ prefix or '/' }}{{ '' if prefix else '' }}">{{ hero.name or settings.get('site_title') or 'Portfolio' }}</a>
+    <nav class="menu">
+      {% for k, t in nav %}<a href="#{{ k }}">{{ t }}</a>{% endfor %}
+      {% if resume_url %}<a class="btn small" href="{{ resume_url }}?dl=1">Résumé ↓</a>{% endif %}
+    </nav>
+  </div>
+</header>
+{% block body %}{% endblock %}
+<footer class="site-footer"><div class="wrap">
+  {{ settings.get('footer') or ('© ' ~ hero.name if hero.name else '') }}
+</div></footer>
+</body>
+</html>

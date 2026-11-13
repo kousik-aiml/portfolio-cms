@@ -1,0 +1,52 @@
+{% extends "admin/base.html" %}
+{% block title %}Sections &amp; order{% endblock %}
+{% block actions %}<a class="btn" href="{{ url_for('admin.preview') }}">👁 Preview</a>{% endblock %}
+{% block content %}
+<p class="muted">Control which sections appear on your website, their names, intro text and order. Sections with nothing published are skipped automatically.</p>
+<form method="post" class="stack">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <ul class="rows sortable" data-reorder="{{ url_for('admin.sections_reorder') }}" data-csrf="{{ csrf_token() }}" data-idkey="keys" data-idattr="key">
+  {% for s in rows %}
+    <li class="rowitem sec" data-key="{{ s.key }}" draggable="true">
+      <span class="grip">⠿</span>
+      <div class="grow">
+        <div class="two-col">
+          <div class="field"><label>Title on website</label><input name="title_{{ s.key }}" value="{{ s.title }}" maxlength="120"></div>
+          <div class="field"><label>Layout</label>
+            <select name="layout_{{ s.key }}" {{ 'disabled' if s.kind == 'profile' }}>
+              {% for v, l in [('cards','Cards'),('timeline','Timeline'),('list','Simple list')] %}<option value="{{ v }}" {{ 'selected' if s.layout == v }}>{{ l }}</option>{% endfor %}
+            </select></div>
+        </div>
+        <div class="field"><label>Intro text (optional)</label><input name="intro_{{ s.key }}" value="{{ s.intro }}" maxlength="2000"></div>
+        <div class="badges">
+          <label class="check"><input type="checkbox" name="visible_{{ s.key }}" value="1" {{ 'checked' if s.visible }}> Show on website</label>
+          {% if s.kind == 'custom' %}<span class="pill">custom section</span>
+            <a class="btn small" href="{{ url_for('admin.section_list', key=s.key) }}">Edit entries</a>
+            <a class="btn small danger" href="{{ url_for('admin.section_delete', key=s.key) }}">Delete section</a>
+          {% elif s.kind == 'profile' %}<span class="pill">filled from <a href="{{ url_for('admin.profile') }}">Profile</a></span>
+          {% else %}<a class="btn small" href="{{ url_for('admin.section_list', key=s.key) }}">Edit entries</a>{% endif %}
+        </div>
+      </div>
+      <div class="rowactions">
+        {% for d, label in [('up','▲'),('down','▼')] %}
+          <button class="btn small ghost" type="submit" formaction="{{ url_for('admin.section_move', key=s.key, direction=d) }}" formnovalidate>{{ label }}</button>
+        {% endfor %}
+      </div>
+    </li>
+  {% endfor %}
+  </ul>
+  <div class="sticky-bar"><button class="btn primary" type="submit">Save sections</button></div>
+</form>
+
+<section class="card">
+  <h2>Add your own section</h2>
+  <p class="muted">For anything not covered above — e.g. “Publications”, “Open-source contributions”, “Talks”. Each entry has title, subtitle, date, description, image, tags, attachments and links, plus any custom fields you add.</p>
+  <form method="post" action="{{ url_for('admin.section_new') }}" class="inline-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field"><label>Section name</label><input name="title" required maxlength="120" placeholder="e.g. Publications"></div>
+    <div class="field"><label>Intro (optional)</label><input name="intro" maxlength="2000"></div>
+    <div class="field"><label>Layout</label><select name="layout"><option value="cards">Cards</option><option value="timeline">Timeline</option><option value="list">Simple list</option></select></div>
+    <button class="btn primary" type="submit">Create section</button>
+  </form>
+</section>
+{% endblock %}
